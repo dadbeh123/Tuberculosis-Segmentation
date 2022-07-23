@@ -4,48 +4,82 @@ import torch.nn.functional as F
 from mlassistant.core import ModelIO, Model
 
 
-class MNISTClassifier(Model):
+class UNet(Model):
     def __init__(self):
         super().__init__()
         
-        self._seq = nn.Sequential(                          # B 1   28  28
-            nn.BatchNorm2d(num_features=1),
-            nn.Conv2d(1, 64, 3, stride=1, padding=3),       # B 64  32  32  
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 64, 3, stride=1, padding=1),      # B 64  32  32
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool2d(2, stride=2, padding=0),           # B 64  16  16
-            nn.Dropout2d(0.2, inplace=True),
-            nn.BatchNorm2d(num_features=64),
-            nn.Conv2d(64, 128, 3, stride=1, padding=1),     # B 128 16  16
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),    # B 128 16  16
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool2d(2, stride=2, padding=0),           # B 128 8   8
-            nn.Dropout2d(0.2, inplace=True),
-            nn.BatchNorm2d(num_features=128),
-            nn.Conv2d(128, 256, 3, stride=1, padding=1),    # B 256 8   8
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, 256, 3, stride=1, padding=1),    # B 256 8   8
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool2d(2, stride=2, padding=0),           # B 256 4   4
-            nn.Dropout2d(0.2, inplace=True),
-            nn.BatchNorm2d(num_features=256),
-            nn.Conv2d(256, 512, 3, stride=1, padding=1),    # B 512 4   4
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(512, 512, 3, stride=1, padding=1),    # B 512 4   4
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.MaxPool2d(2, stride=2, padding=0),           # B 512 2   2
-            nn.Dropout2d(0.2, inplace=True),
-            nn.Flatten(1),                                  # B 2048
-            nn.Linear(2048, 512),
-            nn.Dropout(0.5, inplace=True),
-            nn.ReLU(inplace=True),
-            nn.Linear(512, 10),
-            nn.Softmax(dim=-1))
+        self.down_sampler1 = nn.Sequential(
+            nn.Conv2d(1, 64, 3),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3),
+            nn.ReLU()
+        )
+
+        self.down_sampler2 = nn.Sequential(
+            nn.Conv2d(64, 128, 3),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3),
+            nn.ReLU()
+        )
+
+        self.down_sampler3 = nn.Sequential(
+            nn.Conv2d(128, 256, 3),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3),
+            nn.ReLU()
+        )
+
+        self.down_sampler4 = nn.Sequential(
+            nn.Conv2d(256, 512, 3),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3),
+            nn.ReLU()
+        )
+
+        self.down_sampler5 = nn.Sequential(
+            nn.Conv2d(512, 1024, 2),
+            nn.ReLU(),
+            nn.Conv2d(1024, 1024, 2),
+            nn.ReLU()
+        )
+
+        self.conv_transpose1 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
+        self.conv_transpose2 = nn.ConvTranspose2d(512, 256, 2, stride=2)   
+        self.conv_transpose3 = nn.ConvTranspose2d(256, 128, 2, stride=2)
+        self.conv_transpose4 = nn.ConvTranspose2d(128, 64, 2, stride=2)      
+
+        self.up_sampler1 = nn.Sequential(
+            nn.Conv2d(1024, 512, 3),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3),
+            nn.ReLU()
+        )  
+        
+        self.up_sampler2 = nn.Sequential(
+            nn.Conv2d(512, 256, 3),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3),
+            nn.ReLU()
+        )
+        
+        self.up_sampler3 = nn.Sequential(
+            nn.Conv2d(256, 128, 3),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3),
+            nn.ReLU()
+        )
+
+        self.up_sampler4 = nn.Sequential(
+            nn.Conv2d(128, 64, 3),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3),
+            nn.ReLU(),
+            nn.Conv2d(64, 2, 3),
+            nn.ReLU()
+        )
     
     def forward(self, mnist_x: torch.Tensor, mnist_y: torch.Tensor) -> ModelIO:
-        # x:    B   1   28  28
+        # x:    B   572   572
         out = self._seq(mnist_x)
 
         output = {

@@ -1,3 +1,5 @@
+import os
+from matplotlib.pyplot import imread
 from typing import TYPE_CHECKING, Tuple, Union
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -14,18 +16,40 @@ class ScanLoader(ContentLoader):
         self._x, self._y = self._load_data(data_specification)
 
     def _load_data(self, data_specification: str) -> Tuple[np.ndarray, np.ndarray]:
-        mnist = fetch_openml('mnist_784')
-        x = mnist.data.reshape(70000, 1, 28, 28) / 255.
-        y = mnist.target.astype(int)
+        montgomery_dir = '/content/drive/MyDrive/Colab Notebooks/Binary Segmentation/Montgomery'
+        shenzhen_dir = '/content/drive/MyDrive/Colab Notebooks/Binary Segmentation/Shenzhen'
+
+        montgomery_imgs, shenzhen_imgs = [], []
+        montgomery_labels, shenzhen_labels = [], []
+
+        for filename in os.listdir(os.path.join(montgomery_dir, 'Images')):
+            image = imread(os.path.join(montgomery_dir, 'Images/' + filename))
+            mask = imread(os.path.join(montgomery_dir, 'Masks/FinalMasks/' + filename))
+            montgomery_imgs.append(image)
+            montgomery_labels.append(mask)
+
+        for filename in os.listdir(os.path.join(shenzhen_dir, 'Images')):
+            image = imread(os.path.join(shenzhen_dir, 'Images/' + filename))
+            mask = imread(os.path.join(shenzhen_dir, 'Masks/' + filename))
+            shenzhen_imgs.append(image[..., 0])
+            shenzhen_labels.append(mask)
+
+        x = np.concatenate([np.array(montgomery_imgs), 
+                            np.array(shenzhen_imgs)])
+        y = np.concatenate([np.array(montgomery_labels), 
+                            np.array(shenzhen_labels)])
+
         x_train, x_test, y_train, y_test = train_test_split(
             x, y, test_size=0.2, random_state=17)
         x_train, x_val, y_train, y_val = train_test_split(
             x_train, y_train, test_size=0.1, random_state=17)
+            
         data = {
             'train': (x_train, y_train),
             'val': (x_val, y_val),
             'test': (x_test, y_test),
         }
+
         return data[data_specification]
 
     def get_samples_names(self):

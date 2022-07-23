@@ -1,16 +1,15 @@
 from typing import TYPE_CHECKING, Tuple, Union
 import numpy as np
-from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from mlassistant.core.data import ContentLoader
 if TYPE_CHECKING:
-    from ..config import MnistConfig
+    from ..config import TBSegmentConfig
 
 
-class MnistLoader(ContentLoader):
-    """ The MnistLoader class """
+class ScanLoader(ContentLoader):
+    """ The ScanLoader class """
 
-    def __init__(self, conf: 'MnistConfig', prefix_name: str, data_specification: str):
+    def __init__(self, conf: 'TBSegmentConfig', prefix_name: str, data_specification: str):
         super().__init__(conf, prefix_name, data_specification)
         self._x, self._y = self._load_data(data_specification)
 
@@ -19,7 +18,7 @@ class MnistLoader(ContentLoader):
         x = mnist.data.reshape(70000, 1, 28, 28) / 255.
         y = mnist.target.astype(int)
         x_train, x_test, y_train, y_test = train_test_split(
-            x, y, test_size=0.3, random_state=17)
+            x, y, test_size=0.2, random_state=17)
         x_train, x_val, y_train, y_val = train_test_split(
             x_train, y_train, test_size=0.1, random_state=17)
         data = {

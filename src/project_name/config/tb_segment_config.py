@@ -2,10 +2,10 @@ from torch import nn
 from torchvision import transforms
 from mlassistant.config import NormalConfig
 from mlassistant.model_evaluation.multiclass_evaluator import MulticlassEvaluator
-from ..data import MnistLoader
+from ..data import ScanLoader
 
 
-class MnistConfig(NormalConfig):
+class TBSegmentConfig(NormalConfig):
 
     def __init__(self, try_name: str, try_num: int):
 
@@ -14,12 +14,12 @@ class MnistConfig(NormalConfig):
             try_name=try_name,
             try_num=try_num,
             evaluator_cls=MulticlassEvaluator,
-            content_loaders=[('mnist', MnistLoader)],
+            content_loaders=[('scans', ScanLoader)],
             inp_size=28
         )
 
         # replaced configs!
-        self.batch_size = 512
+        self.batch_size = 50
         self.training_config.iters_per_epoch = None
 
         # augmentation

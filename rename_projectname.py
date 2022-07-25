@@ -1,7 +1,7 @@
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Rename project name in the main.py file')
+parser = argparse.ArgumentParser(description='tb_segmentation')
 parser.add_argument('project_name', help='Project name')
 
 args = parser.parse_args()

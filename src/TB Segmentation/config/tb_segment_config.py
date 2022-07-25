@@ -1,7 +1,7 @@
 from torch import nn
 from torchvision import transforms
 from mlassistant.config import NormalConfig
-from mlassistant.model_evaluation.multiclass_evaluator import MulticlassEvaluator
+from mlassistant.model_evaluation.binary_evaluator import BinaryEvaluator
 from ..data import ScanLoader
 
 
@@ -13,9 +13,9 @@ class TBSegmentConfig(NormalConfig):
             data_separation=None,
             try_name=try_name,
             try_num=try_num,
-            evaluator_cls=MulticlassEvaluator,
+            evaluator_cls=BinaryEvaluator,
             content_loaders=[('scans', ScanLoader)],
-            inp_size=28
+            inp_size=572
         )
 
         # replaced configs!
@@ -24,9 +24,10 @@ class TBSegmentConfig(NormalConfig):
 
         # augmentation
         self.training_config.augmentations_dict = {
-            'mnist_x': nn.Sequential(
-                transforms.RandomRotation(35),
-                transforms.RandomAffine(0, shear=0.2, scale=(.8, 1.2)),
+            'scan_x': nn.Sequential(
+                transforms.RandomRotation(20),
+                transforms.GaussianBlur((3, 3), 10),
                 transforms.RandomResizedCrop(self.inp_size, scale=(0.7, 1.4)),
-                transforms.RandomPerspective())
+                transforms.RandomHorizontalFlip()
+              )
         }

@@ -74,8 +74,7 @@ class UNet(Model):
             nn.ReLU(),
             nn.Conv2d(64, 64, 3),
             nn.ReLU(),
-            nn.Conv2d(64, 2, 1),
-            nn.ReLU()
+            nn.Conv2d(64, 2, 1)
         )
     
     def forward(self, scan_x: torch.Tensor, scan_y: torch.Tensor) -> ModelIO:
@@ -90,14 +89,14 @@ class UNet(Model):
         pooled = F.max_pool2d(down_sampled4, 2, 2)
         down_sampled5 = self.down_sampler5(pooled)
 
-        upsampled1 = self.up_sampler1(torch.cat([down_sampled4, 
-                                                self.conv_transpose1(down_sampled5)], axis=1))
-        upsampled2 = self.up_sampler2(torch.cat([down_sampled3,
-                                                self.conv_transpose2(upsampled1)], axis=1))
-        upsampled3 = self.up_sampler3(torch.cat([down_sampled2, 
-                                                self.conv_transpose3(upsampled2)], axis=1))
-        out = self.up_sampler4(torch.cat([down_sampled1, 
-                                                self.conv_transpose4(upsampled3)], axis=1))
+        upsampled1 = self.up_sampler1(self.crop(self.conv_transpose1(down_sampled5), 
+                                                              down_sampled4))
+        upsampled2 = self.up_sampler2(self.crop(self.conv_transpose2(upsampled1),
+                                                              down_sampled3))
+        upsampled3 = self.up_sampler3(self.crop(self.conv_transpose3(upsampled2),
+                                                              down_sampled2))
+        out = self.up_sampler4(self.crop(self.conv_transpose4(upsampled3), 
+                                                              down_sampled1))
 
         output = {
             'categorical_probability': out,
@@ -107,3 +106,11 @@ class UNet(Model):
             output['loss'] = F.cross_entropy(out, scan_y)
         
         return output
+
+    def crop(self, x1, x2):
+      height = x2.size()[2] - x1.size()[2]
+      width = x2.size()[3] - x1.size()[3]
+      x1 = F.pad(x1, [width // 2, width - width // 2,
+                      height // 2, height - height // 2])
+      return torch.cat([x2, x1], dim=1)
+    

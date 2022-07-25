@@ -1,1 +1,1 @@
-from .mnist_config import MnistConfig
+from .tb_segment_config import TBSegmentConfig

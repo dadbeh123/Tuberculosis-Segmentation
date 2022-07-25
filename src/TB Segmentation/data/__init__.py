@@ -1,1 +1,1 @@
-from .mnist_loader import MnistLoader
+from .scan_loader import ScanLoader

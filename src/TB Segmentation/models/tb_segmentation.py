@@ -70,16 +70,17 @@ class UNet(Model):
         )
 
         self.up_sampler4 = nn.Sequential(
-            nn.Conv2d(128, 64, 3),
+            nn.Conv2d(128, 64, 3, padding=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3),
+            nn.Conv2d(64, 64, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(64, 2, 1)
+            nn.Conv2d(64, 2, 1, padding=1)
         )
     
-    def forward(self, scan_x: torch.Tensor, scan_y: torch.Tensor) -> ModelIO:
+    def forward(self, scans_x: torch.Tensor, scans_y: torch.Tensor) -> ModelIO:
         # x:    B   572   572
-        down_sampled1 = self.down_sampler1(scan_x)
+        scans_x = scans_x.reshape((-1, 1, 572, 572))
+        down_sampled1 = self.down_sampler1(scans_x)
         pooled = F.max_pool2d(down_sampled1, 2, 2)
         down_sampled2 = self.down_sampler2(pooled)
         pooled = F.max_pool2d(down_sampled2, 2, 2)
@@ -99,11 +100,11 @@ class UNet(Model):
                                                               down_sampled1))
 
         output = {
-            'categorical_probability': out,
+            'categorical_probability': out
         }
 
-        if scan_y is not None:
-            output['loss'] = F.cross_entropy(out, scan_y)
+        if scans_y is not None:
+            output['loss'] = F.cross_entropy(out, scans_y.long())
         
         return output
 

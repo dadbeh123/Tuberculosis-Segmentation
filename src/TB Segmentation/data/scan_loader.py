@@ -58,7 +58,7 @@ class ScanLoader(ContentLoader):
         return [str(i) for i in range(len(self._x))]
 
     def get_samples_labels(self):
-        return self._y
+        return np.zeros(len(self._y))
 
     def reorder_samples(self, indices, new_names):
         self._x = self._x[indices]

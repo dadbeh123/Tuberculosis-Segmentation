@@ -1,7 +1,7 @@
 from torch import nn
 from torchvision import transforms
 from mlassistant.config import NormalConfig
-from mlassistant.model_evaluation.binary_evaluator import BinaryEvaluator
+from mlassistant.model_evaluation.loss_evaluator import LossEvaluator
 from ..data import ScanLoader
 
 
@@ -13,21 +13,21 @@ class TBSegmentConfig(NormalConfig):
             data_separation=None,
             try_name=try_name,
             try_num=try_num,
-            evaluator_cls=BinaryEvaluator,
+            evaluator_cls=LossEvaluator,
             content_loaders=[('scans', ScanLoader)],
             inp_size=572
         )
 
         # replaced configs!
-        self.batch_size = 10
+        self.batch_size = 5
         self.training_config.iters_per_epoch = None
 
         # augmentation
         self.training_config.augmentations_dict = {
             'scans_x': nn.Sequential(
-                transforms.RandomRotation(20),
-                transforms.GaussianBlur((3, 3), 10),
-                transforms.RandomResizedCrop(self.inp_size, scale=(0.7, 1.4)),
-                transforms.RandomHorizontalFlip()
+              #   transforms.RandomRotation(20),
+              #   transforms.GaussianBlur((3, 3), 10),
+              #   transforms.RandomResizedCrop(self.inp_size, scale=(0.7, 1.4)),
+              #   transforms.RandomHorizontalFlip()
               )
         }

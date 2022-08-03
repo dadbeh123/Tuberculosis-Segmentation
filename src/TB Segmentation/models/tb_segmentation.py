@@ -74,7 +74,8 @@ class UNet(Model):
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(64, 2, 1, padding=1)
+            nn.Conv2d(64, 1, 1, padding=1),
+            nn.Sigmoid()
         )
     
     def forward(self, scans_x: torch.Tensor, scans_y: torch.Tensor) -> ModelIO:
@@ -97,14 +98,17 @@ class UNet(Model):
         upsampled3 = self.up_sampler3(self.crop(self.conv_transpose3(upsampled2),
                                                               down_sampled2))
         out = self.up_sampler4(self.crop(self.conv_transpose4(upsampled3), 
-                                                              down_sampled1))
-
+                                                              down_sampled1)).squeeze()
+        
+        if out.shape[0] == 1:
+          out = out.squeeze()
+          
         output = {
-            'categorical_probability': out
+            'result': out
         }
 
         if scans_y is not None:
-            output['loss'] = F.cross_entropy(out, scans_y.long())
+            output['loss'] = F.binary_cross_entropy(out, scans_y)
         
         return output
 

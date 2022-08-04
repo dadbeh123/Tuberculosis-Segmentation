@@ -108,7 +108,7 @@ class UNet(Model):
         }
 
         if scans_y is not None:
-            output['loss'] = F.binary_cross_entropy(out, scans_y)
+            output['loss'] = F.binary_cross_entropy(out, scans_y.squeeze())
         
         return output
 

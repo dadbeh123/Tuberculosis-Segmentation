@@ -40,14 +40,14 @@ class ScanLoader(ContentLoader):
                             np.array(shenzhen_labels)])
 
         x_train, x_test, y_train, y_test = train_test_split(
-            x, y, test_size=0.2, random_state=17)
+            x, y, test_size=0.1, random_state=17)
         x_train, x_val, y_train, y_val = train_test_split(
             x_train, y_train, test_size=0.1, random_state=17)
             
         data = {
-            'train': (x_train, y_train),
-            'val': (x_val, y_val),
-            'test': (x_test, y_test),
+            'train': (np.expand_dims(x_train, axis=1), np.expand_dims(y_train, axis=1)),
+            'val': (np.expand_dims(x_val, axis=1), np.expand_dims(y_val, axis=1)),
+            'test': (np.expand_dims(x_test, axis=1), np.expand_dims(y_test, axis=1)),
         }
 
         return data[data_specification]

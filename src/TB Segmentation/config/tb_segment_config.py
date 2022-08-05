@@ -1,7 +1,7 @@
 from torch import nn
 from torchvision import transforms
 from mlassistant.config import NormalConfig
-from mlassistant.model_evaluation.loss_evaluator import LossEvaluator
+from ..evaluator.loss_evaluator import LossEvaluator
 from ..data import ScanLoader
 
 

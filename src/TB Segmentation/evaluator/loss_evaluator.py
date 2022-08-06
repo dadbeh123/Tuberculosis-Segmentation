@@ -87,17 +87,20 @@ class LossEvaluator(NormalEvaluator):
         scan_loader = self.data_loader.get_content_loader_of_interest(ScanLoader)
         test_set = scan_loader._load_data('test')
         for i in range(4):
-          imgs = transforms.ToTensor()(np.squeeze(test_set[0][i * 5 : i * 5 + 5])).to('cuda').reshape(-1, 572, 572)
-          masks = transforms.ToTensor()(np.squeeze(test_set[1][i * 5 : i * 5 + 5])).to('cuda').reshape(-1, 572, 572)
-          preds = self.model(imgs, masks)['result']
+          imgs, masks, preds = [], [], []
           for j in range(5):
-            
-            Image.fromarray((np.squeeze((preds[j] > 0.5).float().cpu().numpy()) * \
+            imgs.append(transforms.ToTensor()(np.squeeze(test_set[0][i * 5 + j])).to('cuda').reshape(-1, 572, 572))
+            masks.append(transforms.ToTensor()(np.squeeze(test_set[0][i * 5 + j])).to('cuda').reshape(-1, 572, 572))
+            preds.append(self.model(imgs[j].unsqueeze(0), masks[j].unsqueeze(0))['result'])
+          for j in range(5):
+            temp = (preds[j] > 0.5).float().detach().cpu().numpy()
+            mask = np.squeeze(test_set[1][i * 5 + j])
+            Image.fromarray((temp * \
                               255).astype(np.uint8)).save(os.path.join('/content/drive/MyDrive/Outputs',
                               'img' + str(5 * i + j) + '.png'))
-            Image.fromarray((np.squeeze(masks[j].cpu().numpy()) *\
+            Image.fromarray((mask * \
                               255).astype(np.uint8)).save(os.path.join('/content/drive/MyDrive/Outputs',
                               'mask' + str(5 * i + j) + '.png'))
-
+            
 
         

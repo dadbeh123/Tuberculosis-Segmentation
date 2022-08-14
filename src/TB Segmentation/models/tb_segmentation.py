@@ -11,36 +11,46 @@ class UNet(Model):
         self.down_sampler1 = nn.Sequential(
             nn.Conv2d(1, 64, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(64),
             nn.Conv2d(64, 64, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(64)
         )
 
         self.down_sampler2 = nn.Sequential(
             nn.Conv2d(64, 128, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(128),
             nn.Conv2d(128, 128, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(128)
         )
 
         self.down_sampler3 = nn.Sequential(
             nn.Conv2d(128, 256, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(256),
             nn.Conv2d(256, 256, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(256)
         )
 
         self.down_sampler4 = nn.Sequential(
             nn.Conv2d(256, 512, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(512),
             nn.Conv2d(512, 512, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(512)
         )
 
         self.down_sampler5 = nn.Sequential(
             nn.Conv2d(512, 1024, 2),
             nn.ReLU(),
+            nn.BatchNorm2d(1024),
             nn.Conv2d(1024, 1024, 2),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(1024)
         )
 
         self.conv_transpose1 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
@@ -51,31 +61,39 @@ class UNet(Model):
         self.up_sampler1 = nn.Sequential(
             nn.Conv2d(1024, 512, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(512),
             nn.Conv2d(512, 512, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(512)
         )  
         
         self.up_sampler2 = nn.Sequential(
             nn.Conv2d(512, 256, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(256),
             nn.Conv2d(256, 256, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(256)
         )
         
         self.up_sampler3 = nn.Sequential(
             nn.Conv2d(256, 128, 3),
             nn.ReLU(),
+            nn.BatchNorm2d(128),
             nn.Conv2d(128, 128, 3),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.BatchNorm2d(128)
         )
 
         self.up_sampler4 = nn.Sequential(
             nn.Conv2d(128, 64, 3, padding=2),
             nn.ReLU(),
+            nn.BatchNorm2d(64),
             nn.Conv2d(64, 64, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(64, 1, 1, padding=1),
-            nn.Sigmoid()
+            nn.BatchNorm2d(64),
+            nn.Conv2d(64, 2, 1, padding=1),
+            nn.Softmax(dim=1)
         )
     
     def forward(self, scans_x: torch.Tensor, scans_y: torch.Tensor) -> ModelIO:
@@ -108,7 +126,7 @@ class UNet(Model):
         }
 
         if scans_y is not None:
-            output['loss'] = F.binary_cross_entropy(out, scans_y.squeeze())
+            output['loss'] = F.binary_cross_entropy(out[:, 0, ...], scans_y.squeeze())
         
         return output
 

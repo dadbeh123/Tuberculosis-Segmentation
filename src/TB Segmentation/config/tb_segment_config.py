@@ -25,6 +25,9 @@ class TBSegmentConfig(NormalConfig):
         # augmentation
         self.training_config.augmentations_dict = {
             'scans_x': nn.Sequential(
-                
+                transforms.RandomHorizontalFlip(p=1)
               )
+            # 'scans_y': nn.Sequential(
+            #     transforms.RandomHorizontalFlip(p=1)
+            #   )
         }

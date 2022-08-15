@@ -93,8 +93,9 @@ class LossEvaluator(NormalEvaluator):
             masks.append(transforms.ToTensor()(np.squeeze(test_set[0][i * 5 + j])).to('cuda').reshape(-1, 572, 572))
             preds.append(self.model(imgs[j].unsqueeze(0), masks[j].unsqueeze(0))['result'])
           for j in range(5):
-            temp = (preds[j] > 0.5).float().detach().cpu().numpy()
+            temp = (preds[j][0, ...].squeeze() > 0.5).float().detach().cpu().numpy()
             mask = np.squeeze(test_set[1][i * 5 + j])
+            print('--->', temp.shape, mask.shape)
             Image.fromarray((temp * \
                               255).astype(np.uint8)).save(os.path.join('/content/drive/MyDrive/Outputs',
                               'img' + str(5 * i + j) + '.png'))

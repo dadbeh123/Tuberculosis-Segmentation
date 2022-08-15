@@ -1,12 +1,15 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torchvision import transforms
 from mlassistant.core import ModelIO, Model
 
 
 class UNet(Model):
     def __init__(self):
         super().__init__()
+
+        self.hflip_trans = transforms.RandomHorizontalFlip(p=1)
         
         self.down_sampler1 = nn.Sequential(
             nn.Conv2d(1, 64, 3),
@@ -99,6 +102,9 @@ class UNet(Model):
     def forward(self, scans_x: torch.Tensor, scans_y: torch.Tensor) -> ModelIO:
         # x:    B   572   572
         scans_x = scans_x.reshape((-1, 1, 572, 572))
+        # scans_x = torch.cat((scans_x, self.hflip_trans(scans_x)))
+        # scans_y = torch.cat((scans_y, self.hflip_trans(scans_y)))
+
         down_sampled1 = self.down_sampler1(scans_x)
         pooled = F.max_pool2d(down_sampled1, 2, 2)
         down_sampled2 = self.down_sampler2(pooled)
@@ -126,7 +132,7 @@ class UNet(Model):
         }
 
         if scans_y is not None:
-            output['loss'] = F.binary_cross_entropy(out[:, 0, ...], scans_y.squeeze())
+            output['loss'] = F.binary_cross_entropy(out[0, ...], scans_y.squeeze())
         
         return output
 

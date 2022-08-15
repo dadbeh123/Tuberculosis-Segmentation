@@ -19,15 +19,11 @@ class TBSegmentConfig(NormalConfig):
         )
 
         # replaced configs!
-        self.batch_size = 5
+        self.batch_size = 3
         self.training_config.iters_per_epoch = None
 
         # augmentation
         self.training_config.augmentations_dict = {
             'scans_x': nn.Sequential(
-                transforms.RandomHorizontalFlip(p=1)
               )
-            # 'scans_y': nn.Sequential(
-            #     transforms.RandomHorizontalFlip(p=1)
-            #   )
         }

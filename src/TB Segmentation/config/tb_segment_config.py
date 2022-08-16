@@ -15,11 +15,11 @@ class TBSegmentConfig(NormalConfig):
             try_num=try_num,
             evaluator_cls=LossEvaluator,
             content_loaders=[('scans', ScanLoader)],
-            inp_size=572
+            inp_size=100
         )
 
         # replaced configs!
-        self.batch_size = 3
+        self.batch_size = 5
         self.training_config.iters_per_epoch = None
 
         # augmentation

@@ -135,6 +135,9 @@ class UNet(Model):
 
         if scans_y is not None:
             output['loss'] = F.binary_cross_entropy(out[:, 1, ...], scans_y.squeeze())
+            confusion = (out[0:5] > 0.5).long() / scans_y.squeeze()[0:5].long()
+            output['FP'] = torch.sum(confusion == float('inf'))
+            output['FN'] = torch.sum(confusion == 0)
         
         return output
 

@@ -44,8 +44,7 @@ class LossEvaluator(NormalEvaluator):
             model_output.get('loss', 0.0) * (float(n_batch) / new_n)
 
         for kw in model_output.keys():
-            if 'loss' in kw and kw != 'loss':
-
+            if 'loss' not in kw and kw != 'loss' and kw != 'result':
                 old_avg = self._avg_other_losses.get(kw, 0.0)
                 old_n = self._n_received_samples_other_losses.get(kw, 0)
 
@@ -94,9 +93,9 @@ class LossEvaluator(NormalEvaluator):
             masks.append(transforms.ToTensor()(np.squeeze(test_set[1][i * 5 + j])).to('cuda').reshape(-1, 100, 100))
             preds.append(self.model(imgs[j].unsqueeze(0), None)['result'])
           for j in range(5):
-            temp = (preds[j][0, ...].squeeze() > 0.5).float().detach().cpu().numpy()
+            temp = (preds[j][1, ...].squeeze() > 0.5).float().detach().cpu().numpy()
             mask = np.squeeze(test_set[1][i * 5 + j])
-            scan = test_set[0][i * 5 + j]
+            scan = np.squeeze(test_set[0][i * 5 + j])
             Image.fromarray((scan * \
                               255).astype(np.uint8)).save(os.path.join('/content/drive/MyDrive/Outputs',
                               'scan' + str(5 * i + j) + '.png'))

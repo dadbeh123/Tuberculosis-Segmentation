@@ -19,7 +19,7 @@ class TBSegmentConfig(NormalConfig):
         )
 
         # replaced configs!
-        self.batch_size = 5
+        self.batch_size = 30
         self.training_config.iters_per_epoch = None
 
         # augmentation

@@ -1,7 +1,9 @@
 import os
 from matplotlib.pyplot import imread
 from typing import TYPE_CHECKING, Tuple, Union
+import torchvision.transforms as T
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split
 from mlassistant.core.data import ContentLoader
 if TYPE_CHECKING:
@@ -39,6 +41,11 @@ class ScanLoader(ContentLoader):
 
         x = np.array(shenzhen_imgs)
         y = np.array(shenzhen_labels)
+
+        x, y = self.add_augmentation(x, y)
+
+        x = np.shuffle(x)
+        y = np.shuffle(y)
         visualization_x = np.array(montgomery_imgs)
         visualization_y = np.array(montgomery_labels)
 
@@ -52,7 +59,7 @@ class ScanLoader(ContentLoader):
             'val': (np.expand_dims(x_val, axis=1), np.expand_dims(y_val, axis=1)),
             'test': (np.expand_dims(x_test, axis=1), np.expand_dims(y_test, axis=1)),
             'visual': (np.expand_dims(visualization_x, axis=1), 
-                       np.expand_dims(visualization_y, axis=1)),
+                       np.expand_dims(visualization_y, axis=1))
         }
 
       return data[data_specification]
@@ -75,6 +82,19 @@ class ScanLoader(ContentLoader):
 
     def get_samples_batch_effect_groups(self):
         pass
+
+    def add_augmentation(self, x, y):
+      hflip_trans = T.RandomHorizontalFlip(p=1)
+      rotation_trans = T.RandomRotation(10)
+      erasing_trans = T.RandomErasing(p=1)
+      brightness_trans = T.ColorJitter(0.5, 0.5)
+
+      x = torch.cat((x, hflip_trans(x), rotation_trans(x),
+                        erasing_trans(x), brightness_trans(x)))
+      y = torch.cat((y, hflip_trans(y), rotation_trans(y),
+                        erasing_trans(y), y))
+      
+      return x, y
 
     def get_placeholder_name_to_fill_function_dict(self):
         """ Returns a dictionary of the placeholders' names (the ones this content loader supports)

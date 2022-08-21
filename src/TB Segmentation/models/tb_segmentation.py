@@ -9,9 +9,6 @@ class UNet(Model):
     def __init__(self):
         super().__init__()
 
-        self.hflip_trans = transforms.RandomHorizontalFlip(p=1)
-        self.erase_trans = transforms.RandomErasing(p=1)
-        
         self.down_sampler1 = nn.Sequential(
             nn.Conv2d(1, 64, 3),
             nn.ReLU(),
@@ -103,9 +100,6 @@ class UNet(Model):
     def forward(self, scans_x: torch.Tensor, scans_y: torch.Tensor) -> ModelIO:
         # x:    B   100   100
         scans_x = scans_x.reshape((-1, 1, 100, 100))
-        # erased_scans = self.erase_trans(torch.cat((scans_x, scans_y), dim=0))
-        # scans_x = torch.cat((scans_x, self.hflip_trans(scans_x), erased_scans[0:5, ...]))
-        # scans_y = torch.cat((scans_y, self.hflip_trans(scans_y), erased_scans[5:10, ...]))
 
         down_sampled1 = self.down_sampler1(scans_x)
         pooled = F.max_pool2d(down_sampled1, 2, 2)
@@ -142,9 +136,8 @@ class UNet(Model):
         return output
 
     def crop(self, x1, x2):
-      height = x2.size()[2] - x1.size()[2]
-      width = x2.size()[3] - x1.size()[3]
-      x1 = F.pad(x1, [width // 2, width - width // 2,
-                      height // 2, height - height // 2])
+      height = x1.size()[2]
+      width = x1.size()[3]
+      x2 = transforms.CenterCrop((height, width))(x2)
       return torch.cat([x2, x1], dim=1)
     

@@ -13,9 +13,12 @@ class ScanLoader(ContentLoader):
 
     def __init__(self, conf: 'TBSegmentConfig', prefix_name: str, data_specification: str):
         super().__init__(conf, prefix_name, data_specification)
+        self.is_ready = False
         self._x, self._y = self._load_data(data_specification)
+        self.is_ready = True
 
     def _load_data(self, data_specification: str) -> Tuple[np.ndarray, np.ndarray]:
+      if not self.is_ready:
         montgomery_dir = '/content/drive/MyDrive/Colab Notebooks/Binary Segmentation/Montgomery'
         shenzhen_dir = '/content/drive/MyDrive/Colab Notebooks/Binary Segmentation/Shenzhen'
 
@@ -34,10 +37,10 @@ class ScanLoader(ContentLoader):
             shenzhen_imgs.append(image[..., 0])
             shenzhen_labels.append(mask)
 
-        x = np.concatenate([np.array(montgomery_imgs), 
-                            np.array(shenzhen_imgs)])
-        y = np.concatenate([np.array(montgomery_labels), 
-                            np.array(shenzhen_labels)])
+        x = np.array(shenzhen_imgs)
+        y = np.array(shenzhen_labels)
+        visualization_x = np.array(montgomery_imgs)
+        visualization_y = np.array(montgomery_labels)
 
         x_train, x_test, y_train, y_test = train_test_split(
             x, y, test_size=0.1, random_state=17)
@@ -48,9 +51,11 @@ class ScanLoader(ContentLoader):
             'train': (np.expand_dims(x_train, axis=1), np.expand_dims(y_train, axis=1)),
             'val': (np.expand_dims(x_val, axis=1), np.expand_dims(y_val, axis=1)),
             'test': (np.expand_dims(x_test, axis=1), np.expand_dims(y_test, axis=1)),
+            'visual': (np.expand_dims(visualization_x, axis=1), 
+                       np.expand_dims(visualization_y, axis=1)),
         }
 
-        return data[data_specification]
+      return data[data_specification]
 
     def get_samples_names(self):
         ''' sample names must be unique, they can be either scan_names or scan_dirs.
